@@ -1,0 +1,12 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "ru.kochkaev.zixamc.sparkintegration.mixin",
+  "compatibilityLevel": "JAVA_17",
+  "mixins": [
+    "ChatSyncBotLogicMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}
