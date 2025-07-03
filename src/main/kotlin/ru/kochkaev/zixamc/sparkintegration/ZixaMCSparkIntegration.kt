@@ -8,6 +8,7 @@ import me.lucko.spark.common.heapdump.HeapDumpSummary
 import me.lucko.spark.common.monitor.memory.MemoryInfo
 import net.fabricmc.api.ModInitializer
 import net.fabricmc.loader.api.FabricLoader
+import net.kyori.adventure.text.Component
 import net.minecraft.network.message.MessageType
 import net.minecraft.server.MinecraftServer
 import net.minecraft.text.Text
@@ -69,16 +70,15 @@ class ZixaMCSparkIntegration : ModInitializer {
                 }
                 FabricLoader.getInstance().gameInstance.let {
                     if (it is MinecraftServer) Initializer.coroutineScope.launch {
-                        val text = config.outOfMemorySay.getMinecraft()
-                        it.playerManager.broadcast(text, false)
+                        it.playerManager.broadcast(config.outOfMemorySay.getMinecraft(), false)
                         (ChatSyncBotLogic as ChatSyncBotLogicMixin).invokeOnSayMessage(TBPlayerEventData(
                             username = "Server",
-                            text = config.outOfMemorySay.get(),
+                            text = Component.text(config.outOfMemorySayTelegram),
                         ), ChatSyncBotLogic.DEFAULT_GROUP)
                         logger.warn("[ZixaMC Spark Integration] Server will be stopped in 5 seconds...")
                         delay(5000)
-                        it.playerManager.playerList.forEach { player ->
-                            player.networkHandler.disconnect(text)
+                        ArrayList(it.playerManager.playerList).forEach { player ->
+                            player.networkHandler.disconnect(config.outOfMemoryKickReason.getMinecraft())
                         }
                         logger.error("[ZixaMC Spark Integration] Stopping the server!")
                         it.stop(false)
