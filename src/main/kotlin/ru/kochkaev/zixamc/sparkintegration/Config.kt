@@ -3,6 +3,7 @@ package ru.kochkaev.zixamc.sparkintegration
 import net.fabricmc.loader.api.FabricLoader
 import org.apache.commons.io.IOUtils
 import org.apache.commons.lang3.exception.ExceptionUtils
+import ru.kochkaev.zixamc.tgbridge.config.ConfigManager
 import ru.kochkaev.zixamc.tgbridge.config.GsonManager.gson
 import ru.kochkaev.zixamc.tgbridge.config.TextData
 import java.io.File
@@ -27,50 +28,13 @@ data class Config (
             private set
         private val file = File(FabricLoader.getInstance().configDir.toFile(), "ZixaMCSparkIntegration.json")
         fun init() {
-            if (file.length() != 0L) {
-                try {
-                    load()
-                    update()
-                } catch (e: Exception) {
-                    ZixaMCSparkIntegration.logger.error(ExceptionUtils.getStackTrace(e))
-                }
-            } else {
-                create()
-            }
-        }
-        fun create() {
-            val content = Config()
-            try {
-                FileOutputStream(file).use { outputStream ->
-                    val jsonString = gson.toJson(content)
-                    IOUtils.write(jsonString, outputStream, StandardCharsets.UTF_8)
-                    config = content
-                }
-            } catch (e: Exception) {
-                ZixaMCSparkIntegration.logger.error(ExceptionUtils.getStackTrace(e))
-            }
+            ConfigManager.init(file, Config::class.java, ::Config, Config::config) { new -> new?.let { config = it } }
         }
         fun load() {
-            var content: Config? = null
-            try {
-                content = gson.fromJson(
-                    IOUtils.toString(file.toURI(), StandardCharsets.UTF_8),
-                    Config::class.java
-                )
-            } catch (e: Exception) {
-                ZixaMCSparkIntegration.logger.error(ExceptionUtils.getStackTrace(e))
-            }
-            content?.let { config = it }
+            ConfigManager.load(file, Config::class.java)
         }
         fun update() {
-            try {
-                FileOutputStream(file).use { outputStream ->
-                    val jsonString = gson.toJson(config)
-                    IOUtils.write(jsonString, outputStream, StandardCharsets.UTF_8)
-                }
-            } catch (e: Exception) {
-                ZixaMCSparkIntegration.logger.error(ExceptionUtils.getStackTrace(e))
-            }
+            ConfigManager.update(file, config)
         }
     }
 }
