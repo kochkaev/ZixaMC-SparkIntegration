@@ -75,8 +75,8 @@ class ZixaMCSparkIntegration : ModInitializer {
                             username = "Server",
                             text = Component.text(config.outOfMemorySayTelegram),
                         ), ChatSyncBotLogic.DEFAULT_GROUP)
-                        logger.warn("[ZixaMC Spark Integration] Server will be stopped in 5 seconds...")
-                        delay(5000)
+                        logger.warn("[ZixaMC Spark Integration] Server will be stopped in ${config.delayBeforeStop.toDouble()/1000.0} seconds...")
+                        delay(config.delayBeforeStop)
                         ArrayList(it.playerManager.playerList).forEach { player ->
                             player.networkHandler.disconnect(config.outOfMemoryKickReason.getMinecraft())
                         }
