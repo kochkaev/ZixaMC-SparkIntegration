@@ -64,7 +64,8 @@ dependencies {
     modImplementation("net.fabricmc:fabric-language-kotlin:${project.property("kotlin_loader_version")}")
 
     modImplementation("net.fabricmc.fabric-api:fabric-api:${project.property("fabric_version")}")
-    modImplementation("ru.kochkaev:zixamc.requests:${project.property("zixamc_tgbridge_version")}")
+    modImplementation("ru.kochkaev:zixamc.api:${project.property("zixamc_api_version")}")
+    modImplementation("ru.kochkaev:zixamc.chatsync:${project.property("zixamc_chatsync_version")}")
 //    modImplementation("me.lucko:spark-api:${project.property("spark_version")}")
     modImplementation("maven.modrinth:spark:${project.property("spark_version")}")
 

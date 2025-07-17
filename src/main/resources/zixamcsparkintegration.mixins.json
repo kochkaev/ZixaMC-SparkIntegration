@@ -6,6 +6,7 @@
   "mixins": [
     "ChatSyncBotLogicMixin"
   ],
+  "plugin": "ru.kochkaev.zixamc.sparkintegration.mixin.SparkIntegrationMixinPlugin",
   "injectors": {
     "defaultRequire": 1
   }

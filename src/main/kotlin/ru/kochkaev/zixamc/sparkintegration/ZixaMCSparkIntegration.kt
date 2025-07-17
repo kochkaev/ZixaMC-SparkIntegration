@@ -2,34 +2,22 @@ package ru.kochkaev.zixamc.sparkintegration
 
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import me.lucko.spark.api.SparkProvider
 import me.lucko.spark.common.heapdump.HeapDump
-import me.lucko.spark.common.heapdump.HeapDumpSummary
 import me.lucko.spark.common.monitor.memory.MemoryInfo
 import net.fabricmc.api.ModInitializer
 import net.fabricmc.loader.api.FabricLoader
-import net.kyori.adventure.text.Component
-import net.minecraft.network.message.MessageType
 import net.minecraft.server.MinecraftServer
-import net.minecraft.text.Text
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import ru.kochkaev.zixamc.tgbridge.telegram.feature.FeatureTypes
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 import ru.kochkaev.zixamc.sparkintegration.Config.Companion.config
-import ru.kochkaev.zixamc.sparkintegration.mixin.ChatSyncBotLogicMixin
-import ru.kochkaev.zixamc.tgbridge.Initializer
-import ru.kochkaev.zixamc.tgbridge.telegram.ServerBot.bot
-import ru.kochkaev.zixamc.tgbridge.sql.SQLGroup
-import ru.kochkaev.zixamc.tgbridge.telegram.feature.chatSync.ChatSyncBotCore
-import ru.kochkaev.zixamc.tgbridge.telegram.feature.chatSync.ChatSyncBotLogic
-import ru.kochkaev.zixamc.tgbridge.telegram.feature.chatSync.TBPlayerEventData
-import ru.kochkaev.zixamc.tgbridge.telegram.feature.chatSync.parser.TextParser
-import ru.kochkaev.zixamc.tgbridge.telegram.serverBot.ServerBotLogic
+import ru.kochkaev.zixamc.api.Initializer
+import ru.kochkaev.zixamc.api.telegram.ServerBot.bot
+import ru.kochkaev.zixamc.api.sql.SQLGroup
+import ru.kochkaev.zixamc.api.formatLang
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
-import kotlin.time.Duration
 
 class ZixaMCSparkIntegration : ModInitializer {
 
@@ -37,11 +25,9 @@ class ZixaMCSparkIntegration : ModInitializer {
         val logger: Logger = LoggerFactory.getLogger("ZixaMCSparkIntegration")
         private val scheduler = Executors.newScheduledThreadPool(1)
         val groups: List<SQLGroup>
-            get() = SQLGroup.groups.fold(arrayListOf<SQLGroup>()) { aac, link ->
-                link.getSQL()?.let {
-                    if (it.features.contains(SparkFeatureType)) {
-                        aac.add(it)
-                    }
+            get() = SQLGroup.groups.fold(arrayListOf<SQLGroup>()) { aac, sql ->
+                if (sql.features.contains(SparkFeatureType)) {
+                    aac.add(sql)
                 }
                 aac
             }
@@ -61,8 +47,7 @@ class ZixaMCSparkIntegration : ModInitializer {
                         bot.sendMessage(
                             chatId = it.id,
                             messageThreadId = it.features.getCasted(SparkFeatureType)?.topicId,
-                            text = TextParser.formatLang(
-                                config.outOfMemoryReport,
+                            text = config.outOfMemoryReport.formatLang(
                                 "filename" to filename,
                             )
                         )
@@ -71,10 +56,7 @@ class ZixaMCSparkIntegration : ModInitializer {
                 FabricLoader.getInstance().gameInstance.let {
                     if (it is MinecraftServer) Initializer.coroutineScope.launch {
                         it.playerManager.broadcast(config.outOfMemorySay.getMinecraft(), false)
-                        (ChatSyncBotLogic as ChatSyncBotLogicMixin).invokeOnSayMessage(TBPlayerEventData(
-                            username = "Server",
-                            text = Component.text(config.outOfMemorySayTelegram),
-                        ), ChatSyncBotLogic.DEFAULT_GROUP)
+                        ChatSyncIntegration.sendAsSay("Server", config.outOfMemorySayTelegram)
                         logger.warn("[ZixaMC Spark Integration] Server will be stopped in ${config.delayBeforeStop.toDouble()/1000.0} seconds...")
                         delay(config.delayBeforeStop)
                         ArrayList(it.playerManager.playerList).forEach { player ->

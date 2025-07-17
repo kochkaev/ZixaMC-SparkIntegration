@@ -1,14 +1,9 @@
 package ru.kochkaev.zixamc.sparkintegration
 
 import net.fabricmc.loader.api.FabricLoader
-import org.apache.commons.io.IOUtils
-import org.apache.commons.lang3.exception.ExceptionUtils
-import ru.kochkaev.zixamc.tgbridge.config.ConfigManager
-import ru.kochkaev.zixamc.tgbridge.config.GsonManager.gson
-import ru.kochkaev.zixamc.tgbridge.config.TextData
+import ru.kochkaev.zixamc.api.config.ConfigFile
+import ru.kochkaev.zixamc.api.config.TextData
 import java.io.File
-import java.io.FileOutputStream
-import java.nio.charset.StandardCharsets
 
 data class Config (
     val featureName: String = "Spark Integration",
@@ -23,18 +18,9 @@ data class Config (
     val millisecondsPerTick: Long = 60000,
     val delayBeforeStop: Long = 5000,
 ) {
-    companion object {
-        lateinit var config: Config
-            private set
-        private val file = File(FabricLoader.getInstance().configDir.toFile(), "ZixaMCSparkIntegration.json")
-        fun init() {
-            ConfigManager.init(file, Config::class.java, ::Config, Config::config) { new -> new?.let { config = it } }
-        }
-        fun load() {
-            ConfigManager.load(file, Config::class.java)
-        }
-        fun update() {
-            ConfigManager.update(file, config)
-        }
-    }
+    companion object: ConfigFile<Config>(
+        file = File(FabricLoader.getInstance().configDir.toFile(), "ZixaMC-SparkIntegration.json"),
+        model = Config::class.java,
+        supplier = ::Config,
+    )
 }
